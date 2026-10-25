@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en-AU"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Morpheme Workshop</title>
+<style>
+:root{--bg:#f4f6f8;--pn:#fff;--tx:#1f2933;--ln:#d5dbe1;--L:#e8434d;--G:#0a6aa1;--A:#3f9f45;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--pn:#1e242b;--tx:#e8ecf0;--ln:#3a434c}}
+:root[data-theme="dark"]{--bg:#14181d;--pn:#1e242b;--tx:#e8ecf0;--ln:#3a434c}
+html,body{height:100%;margin:0}
+body{font:15px system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column}
+header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:8px 12px;background:var(--pn);border-bottom:1px solid var(--ln)}
+h1{font-size:18px;margin:0}.hint{font-size:12px;opacity:.75;flex:1}
+.lg b{margin-right:8px;font-size:12px}
+#app{flex:1;display:flex;min-height:0}
+aside{width:270px;background:var(--pn);border-right:1px solid var(--ln);overflow:auto;padding:10px}
+#ws{flex:1;position:relative;overflow:auto;background-image:radial-gradient(var(--ln) 1px,transparent 1px);background-size:24px 24px}
+.tabs{display:flex;gap:6px;margin-bottom:8px}
+.tab,.clr{border:1px solid var(--ln);background:var(--bg);color:var(--tx);border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
+.tab.on{background:var(--G);color:#fff;border-color:var(--G)}
+summary{font-weight:700;margin:8px 0 2px;cursor:pointer}
+.chip{border:2px solid var(--k);background:#fff;color:var(--k);border-radius:8px;padding:6px 10px;font:700 17px system-ui;margin:3px;cursor:pointer}
+.chip:active{transform:scale(.94)}
+.c{position:absolute;display:block;min-width:150px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;perspective:700px}
+.sz{display:block;padding:0 22px;font:700 34px/104px system-ui;visibility:hidden;white-space:nowrap}
+.in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .35s}
+.c.f .in{transform:rotateY(180deg)}
+.fc,.bk{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;border:2px solid var(--k);border-radius:12px;box-shadow:0 2px 6px #0003;display:flex;align-items:center;justify-content:center;flex-direction:column;box-sizing:border-box}
+.fc{font:700 34px system-ui;color:var(--k)}
+.bk{transform:rotateY(180deg);font:11px/1.25 system-ui;color:#333;padding:10px 8px;text-align:center}
+.bk b{font-size:13px;color:var(--k)}
+.tag{position:absolute;left:10px;bottom:5px;font:700 10px system-ui;color:#789}
+.pk{position:fixed;z-index:9999;width:220px;background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:6px;box-shadow:0 6px 20px #0004}.pk button{display:block;width:100%;text-align:left;border:1px solid var(--ln);background:var(--bg);color:var(--tx);border-radius:8px;padding:8px;margin:3px 0;font-size:14px;cursor:pointer}.pk small{display:block;opacity:.75;font-size:12px}
+.hn{position:absolute;top:7px;left:0;right:0;text-align:center;font:600 11px system-ui;color:#789}
+.ch{position:absolute;right:8px;bottom:4px;font-size:16px;font-style:normal}
+.b{position:absolute;top:3px;width:30px;height:30px;border:0;border-radius:50%;background:#0001;color:#444;font-size:15px;cursor:pointer;z-index:2;padding:0}
+.fl{right:3px}.rm{left:3px}
+.lab{position:absolute;pointer-events:none;font-size:12px;z-index:5000}
+.lab .w{font:700 24px system-ui;letter-spacing:1px}
+.lab s{color:#c0392b;opacity:.65}.lab .n{background:#ffe27a;color:#222;border-radius:3px}
+.lab .go{pointer-events:auto;margin:4px 0 0 8px;border:1px solid var(--ln);background:var(--pn);color:var(--tx);border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer}.df{border-left-color:#3f9f45!important}
+.bd{display:block;background:var(--pn);border:1px solid var(--ln);border-left:4px solid #f5a623;border-radius:6px;padding:3px 7px;margin-top:4px;width:max-content;max-width:300px}
+@media(max-width:720px){#app{flex-direction:column}aside{width:auto;height:36%;border-right:0;border-bottom:1px solid var(--ln)}}
+</style></head><body>
+<header><h1>🔤 Morpheme Workshop</h1>
+<span class="lg"><b style="color:var(--L)">● Latin</b><b style="color:var(--G)">● Greek</b><b style="color:var(--A)">● Anglo-Saxon</b></span>
+<span class="hint">Tap a tile to add it · drag tiles together to build words · ⟳ flips · ✕ removes · 🦎 = chameleon prefix</span>
+<button class="clr" id="clr">Clear</button></header>
+<div id="app"><aside id="lib"></aside><div id="ws"></div></div>
+<script>
+const K={LR:['Latin Root','b'],LW:['Latin Word','b'],LP:['Latin Prefix','p'],LS:['Latin Suffix','s'],GC:['Greek Combining Form','b'],GS:['Greek Combining Form','s'],GW:['Greek Word','b'],AR:['Anglo-Saxon Root','b'],AP:['Anglo-Saxon Prefix','p'],AS:['Anglo-Saxon Suffix','s']};
+const O={L:'var(--L)',G:'var(--G)',A:'var(--A)'};
+const RAW={1:`at|LP!|to, towards, near
+ob|LP!|in front of, towards, against
+ex|LP!|out, away
+sub|LP!|under
+con|LP!|with, together
+trans|LP|beyond, across
+re|LP|back, again; undo
+dis|LP!|away, apart; ill
+in|LP!|in, into, on, upon; not
+im|LP!|in, into, on, upon; not
+pro|LP|forward
+de|LP|un, down, off, totally, out, away
+di|LP!|away, apart; ill
+ad|LP!|to, towards, near
+as|LP!|to, towards, near
+e|LP!|out, away
+sup|LP!|under
+cor|LP!|with, together
+com|LP!|with, together
+un|AP|not, opposite of
+struct|LR|to build or pile up|stroy
+stroy|LR|to build or pile up|struct
+press|LR|to press or hold tight
+act|LR|to do
+tract|LR|to pull
+ject|LR|to throw
+port|LR|to carry
+rupt|LR|to break
+hope|AR|to wish that something you want will happen
+kind|AR|gentle, caring, helpful
+do|AR|to perform or carry out an action
+neighbour|AR|someone who lives nearby
+ure|LS|action or process
+or|LS|one who (does or makes)|er
+ion|LS|noun of action|(at)ion
+at(ion)|LS|noun of action|ion
+ive|LS|having the quality or tendency of|(at)ive
+at(ive)|LS|having the quality or tendency of|ive
+able|LS|capable of
+ible|LS|capable of
+ful|AS|full of
+s|AS|plural; present action; third person present tense verb|es
+es|AS|plural; present action; third person present tense verb|s
+er|AS|comparison||compares
+er|AS|one who does or makes|or|one who
+ness|AS|quality or state of
+est|AS|superlative
+ed|AS|past tense
+hood|AS|condition or state of being
+ing|AS|continuous tense verb
+less|AS|lacking
+ly|AS|having the quality of`,
+2:`counter|LP|against
+super|LP|over
+e|LP|up, out of
+post|LP|after
+pre|LP|before
+inter|LP|between
+uni|LP|one
+milli|LP|thousand
+mand|LR|to order
+vis(e)|LR|to see|vid(e)
+vid(e)|LR|to see|vis(e)
+rect|LR|to put or keep straight
+duct|LR|to lead, bring forward|duce
+duce|LR|to lead, bring forward|duct
+man|LR|hand
+cede|LR|to give way, yield|cess, ceed
+cess|LR|to give way, yield|cede, ceed
+ceed|LR|to give way, yield|cede, cess
+script|LR|to write|scribe
+scribe|LR|to write|script
+form|LR|to shape, to form
+graphy|GC|a writing, drawing or picture of|graph
+graph|GC|a writing, drawing or picture of|graphy
+bio|GC|life
+geo|GC|earth
+auto|GC|self
+logy|GC|study of
+micro|GC|small
+kilo|GC|thousand
+gram|GC|small weight
+metre|GC|measure; measuring device|meter
+meter|GC|measure; measuring device|metre
+date|LS|to give
+angle|LS|angle or corner
+(ul)ar|LS|having the nature of, of the kind of`,
+3:`be|AP|around
+per|LP|through, for every
+fore|AR|in advance
+cast|AR|to throw, project
+hold|AR|to watch over
+sign|LR|to give a sign, mark
+flect|LR|to bend|flex
+flex|LR|to bend|flect
+spect|LR|to look
+vari|LR|to differ, vary
+fract|LR|to break
+numer|LR|number
+cyclone|GW|moving in a circle, whirling around
+cycle|GC|circle, wheel
+bi|GC|two
+tri|GC|three
+photo|GC|light
+phone|GC|voice, sound
+tele|GC|far
+scope|GC|instrument for seeing
+ist|GS|one who does
+ic|GS|having the manner or nature of
+al|LS|related to
+ical|LS|connected, dealing with
+ate|LS|forms participle adjectives
+ance|LS|forms abstract nouns
+(ac)le|LS|forms nouns from verbs
+ous|LS|full of, characterised by|(ul)ous
+(ul)ous|LS|full of, characterised by|ous
+(i)ty|LS|forms nouns denoting quality or condition|(e)ty
+(e)ty|LS|forms nouns denoting quality or condition|(i)ty`,
+4:`ab(s)|LP|away, from
+tain|LR|to hold|ten
+ten|LR|to hold|tain
+centi|LR|one hundred|cent
+cent|LR|one hundred|centi
+cred|LR|to trust, to believe
+dent|LR|tooth
+credit|LW|to have approval or be trusted
+creed|LW|a set of beliefs that influence how a person lives
+chrono|GC|time|chron
+chron|GC|time|chrono
+astro|GC|star|aster
+aster|GC|star|astro
+cosmo|GC|world, universe|cosm
+cosm|GC|world, universe|cosmo
+naut|GC|sailor
+ury|LS|consisting of
+(en)ary|LS|forms nouns`};
+const D=[];for(const u in RAW)RAW[u].split('\n').forEach(l=>{const[t,c,m,a,h]=l.split('|'),k=c.replace('!','');D.push({t,c:k,ch:c.includes('!'),m,a,h,u:+u,k:K[k]})});
+const ws=document.getElementById('ws'),lib=document.getElementById('lib');
+let cards=[],z=1,cu=1,cnt=0;
+const pos=c=>{c.e.style.left=c.x+'px';c.e.style.top=c.y+'px'};
+function chains(list=cards){const cs=[...list].sort((a,b)=>a.x-b.x),nx=new Map,pv=new Set;
+cs.forEach(a=>cs.forEach(b=>{if(a!==b&&Math.abs(a.x+a.w-b.x)<5&&Math.abs(a.y-b.y)<5){nx.set(a,b);pv.add(b)}}));
+return cs.filter(a=>!pv.has(a)).map(a=>{const r=[a];while(nx.has(r[r.length-1]))r.push(nx.get(r[r.length-1]));return r})}
+function add(i){const d=D[i],e=document.createElement('div');e.className='c';e.style.setProperty('--k',O[d.c[0]]);
+e.innerHTML=`<span class="sz">${d.t}</span><div class="in"><div class="fc">${d.h?`<small class="hn">${d.h}</small>`:''}${d.t}<small class="tag">L1-U${d.u}</small>${d.ch?'<i class="ch">🦎</i>':''}</div><div class="bk"><b>‘${d.t}’</b>${d.k[0]}<br>Meaning: ${d.m}${d.a?`<br><i>Alternate form of ‘${d.a}’</i>`:''}</div></div><button class="b rm" aria-label="Remove">✕</button><button class="b fl" aria-label="Flip">⟳</button>`;
+ws.appendChild(e);const n=cnt++,c={e,d,x:ws.scrollLeft+20+(n*28)%220,y:ws.scrollTop+20+(n*36)%260,w:e.offsetWidth};
+pos(c);cards.push(c);e.style.zIndex=++z;
+e.querySelector('.fl').onclick=()=>e.classList.toggle('f');
+e.querySelector('.rm').onclick=()=>{cards=cards.filter(x=>x!==c);e.remove();render()};
+e.onpointerdown=ev=>{if(ev.target.closest('button'))return;e.setPointerCapture(ev.pointerId);
+const r=chains().find(r=>r.includes(c)),g=r.slice(r.indexOf(c)),o=g.map(a=>[a.x,a.y]),sx=ev.clientX,sy=ev.clientY,mx=Math.min(...o.map(a=>a[0])),my=Math.min(...o.map(a=>a[1]));
+g.forEach(a=>a.e.style.zIndex=++z);
+e.onpointermove=m=>{const dx=Math.max(-mx,m.clientX-sx),dy=Math.max(-my,m.clientY-sy);g.forEach((a,j)=>{a.x=o[j][0]+dx;a.y=o[j][1]+dy;pos(a)});render()};
+e.onpointerup=()=>{e.onpointermove=e.onpointerup=null;snap(g);render()}};
+render()}
+function snap(g){const f=g[0],l=g[g.length-1],ch=chains(cards.filter(c=>!g.includes(c)));let best=null,bd=45;
+ch.forEach(r=>{const a=r[r.length-1],b=r[0];let d=Math.hypot(f.x-(a.x+a.w),f.y-a.y);
+if(d<bd){bd=d;best=[a.x+a.w-f.x,a.y-f.y]}
+d=Math.hypot(l.x+l.w-b.x,l.y-b.y);if(d<bd){bd=d;best=[b.x-l.w-l.x,b.y-l.y]}});
+if(best)g.forEach(a=>{a.x+=best[0];a.y+=best[1];pos(a)})}
+const FAM={ad:'ad,ac,af,ag,al,an,ap,ar,as,at',con:'con,com,col,cor',in:'in,im,il,ir',ob:'ob,oc,of,op',ex:'ex,e,ef',sub:'sub,suc,suf,sug,sup,sur'};
+const RULE={ad:{c:'ac',k:'ac',q:'ac',f:'af',g:'ag',l:'al',n:'an',p:'ap',r:'ar',s:'as',t:'at'},con:{b:'com',m:'com',p:'com',l:'col',r:'cor'},in:{b:'im',m:'im',p:'im',l:'il',r:'ir'},ob:{c:'oc',f:'of',p:'op'},ex:{f:'ef',b:'e',d:'e',g:'e',j:'e',l:'e',m:'e',n:'e',r:'e',v:'e'},sub:{c:'suc',f:'suf',g:'sug',p:'sup',r:'sur'}};
+function chk(a,b){for(const f in FAM)if(FAM[f].split(',').includes(a)){const r=RULE[f][b[0]]||f;if(r!=a&&D.some(d=>d.ch&&d.t==r))return r}}
+function build(ch){let L=[],notes=[],prev=null;const V=/[aeiou]/;
+for(const c of ch){const b=c.d.t.replace(/[()]/g,'');
+if(prev){const a=prev.d.t.replace(/[()]/g,''),suf=c.d.k[1]=='s',cur=L.filter(x=>x.c!='x').map(x=>x.t).join('');
+const live=()=>L.filter(x=>x.c!='x');
+if(suf&&/[^aeiou]y$/.test(cur)&&b[0]!='i'){live().pop().c='x';L.push({t:'i',c:'n'});if(b=='s')L.push({t:'e',c:'n'});notes.push(['Y → I',b=='s'?'Change the y to i and add es.':'Change the y to i before adding the ending.'])}
+else if(suf&&/[^eoy]e$/.test(cur)&&V.test(b[0])){live().pop().c='x';notes.push(['Drop the e','Drop the silent e before an ending that starts with a vowel.'])}
+else if(b=='s'&&/(s|x|z|ch|sh)$/.test(cur)){L.push({t:'e',c:'n'});notes.push(['Add es','Words ending in s, x, z, ch or sh add es.'])}
+else if(suf&&V.test(b[0])&&/^[^aeiou]*[aeiou][^aeiouwxy]$/.test(a)&&(prev.d.c[0]=='A'||prev.d.k[0].includes('Word'))){L.push({t:a.slice(-1),c:'n'});notes.push(['Double the letter','One short vowel then one consonant: double the last letter before a vowel ending.'])}
+if(prev.d.ch){const r=chk(a,b);if(r)notes.push(['🦎 Chameleon prefix!',`Before “${b[0]}” this prefix should be ‘${r}’, not ‘${a}’.`])}}
+[...b].forEach(t=>L.push({t,c:''}));prev=c}
+return{w:L.filter(x=>x.c!='x').map(x=>x.t).join(''),h:L.map(x=>x.c=='x'?`<s>${x.t}</s>`:x.c?`<span class="n">${x.t}</span>`:x.t).join(''),n:notes.map(n=>`<span class="bd"><b>${n[0]}</b> ${n[1]}</span>`).join('')}}
+function render(){ws.querySelectorAll('.lab').forEach(x=>x.remove());
+chains().filter(r=>r.length>1).forEach(r=>{const o=build(r),l=document.createElement('div');l.className='lab';l.style.left=r[0].x+'px';l.style.top=r[0].y+112+'px';l.innerHTML=`<span class="w">${o.h}</span><button class="go" data-w="${o.w}" data-i="${r.map(c=>D.indexOf(c.d)).join()}">💡 Meaning</button>${o.n}${PN[o.w]||''}`;ws.appendChild(l)})}
+function drawLib(){const S=[['p','Prefixes'],['b','Bases'],['s','Suffixes']];
+lib.innerHTML=`<div class="tabs">${[1,2,3,4].map(u=>`<button class="tab${u==cu?' on':''}" data-u="${u}">Unit ${u}</button>`).join('')}</div>`+
+S.map(([k,n])=>{const it=D.map((d,i)=>[d,i]).filter(([d])=>d.u==cu&&d.k[1]==k&&!(d.h&&D.findIndex(x=>x.u==d.u&&x.t==d.t&&x.h)<D.indexOf(d)));
+return`<details open><summary>${n} (${it.length})</summary>${it.map(([d,i])=>`<button class="chip" data-i="${i}"${d.h?` data-g="${D.map((x,j)=>x.u==d.u&&x.t==d.t&&x.h?j:'').filter(j=>j!=='').join()}"`:''} style="--k:${O[d.c[0]]}">${d.t}${d.h?`<small style="display:block;font:600 10px system-ui">pick meaning</small>`:''}</button>`).join('')}</details>`}).join('')}
+lib.onclick=e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.u){cu=+t.dataset.u;drawLib()}else if(t.dataset.g)pick(t,t.dataset.g.split(','));else if(t.dataset.i)add(+t.dataset.i)};
+function pick(t,g){document.querySelectorAll('.pk').forEach(x=>x.remove());const p=document.createElement('div'),r=t.getBoundingClientRect();p.className='pk';p.style.left=Math.max(4,Math.min(r.left,innerWidth-232))+'px';p.style.top=r.bottom+4+'px';
+g.forEach(i=>{const d=D[+i],b=document.createElement('button');b.innerHTML=`<b>${d.t}</b> · ${d.h}<small>${d.m}</small>`;b.onclick=()=>{p.remove();add(+i)};p.appendChild(b)});
+document.body.appendChild(p);setTimeout(()=>addEventListener('click',()=>p.remove(),{once:true}),0)}
+const PN={};
+ws.onclick=e=>{const b=e.target.closest('.go');if(!b)return;const w=b.dataset.w,p=b.dataset.i.split(',').map(i=>D[+i]);
+if(PN[w]){delete PN[w];render();return}
+PN[w]=`<span class="bd df">${p.map(d=>`<b>${d.t.replace(/[()]/g,'')}</b> (${d.m})`).join(' + ')}</span>`;render();
+};
+document.getElementById('clr').onclick=()=>{cards.forEach(c=>c.e.remove());cards=[];cnt=0;render()};
+drawLib();
+</script></body></html>
